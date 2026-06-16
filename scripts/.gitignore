@@ -1,6 +1,5 @@
 .DS_Store
 .env
-scripts/.env
 *.local
 *.err
 *.log
