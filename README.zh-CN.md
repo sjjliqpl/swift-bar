@@ -8,11 +8,11 @@
 
 | 脚本 | 刷新频率 | 说明 |
 | --- | ---: | --- |
-| `network-speed.2s.sh` | 2 秒 | 菜单栏显示当前下载速度，下拉菜单显示上传速度和网络详情。 |
-| `cpu-usage.2s.sh` | 2 秒 | 显示总体 CPU 占用和占用最高的应用。 |
-| `memory-usage.2s.sh` | 2 秒 | 显示估算的 App 内存占用、内存明细和 Swap 用量。 |
-| `nf-video-balance.5m.sh` | 5 分钟 | 显示 NF Video/OpenAI 仪表盘余额。需要 `NF_VIDEO_COOKIE`。 |
-| `deepseek-balance.1h.sh` | 1 小时 | 显示 DeepSeek 余额和 Token 估算。需要 `DEEPSEEK_TOKEN`。 |
+| `swift bar/network-speed.2s.sh` | 2 秒 | 菜单栏显示当前下载速度，下拉菜单显示上传速度和网络详情。 |
+| `swift bar/cpu-usage.2s.sh` | 2 秒 | 显示总体 CPU 占用和占用最高的应用。 |
+| `swift bar/memory-usage.2s.sh` | 2 秒 | 显示估算的 App 内存占用、内存明细和 Swap 用量。 |
+| `swift bar/nf-video-balance.5m.sh` | 5 分钟 | 显示 NF Video/OpenAI 仪表盘余额。需要 `NF_VIDEO_COOKIE`。 |
+| `swift bar/deepseek-balance.1h.sh` | 1 小时 | 显示 DeepSeek 余额和 Token 估算。需要 `DEEPSEEK_TOKEN`。 |
 
 ## 依赖
 
@@ -30,37 +30,36 @@ brew install jq
 ## 安装
 
 1. 克隆这个仓库。
-2. 打开 SwiftBar，把这个目录设置为插件目录；或者把需要的脚本复制到你现有的 SwiftBar 插件目录。
+2. 打开 SwiftBar，把 `swift bar` 目录设置为插件目录；或者把需要的脚本复制到你现有的 SwiftBar 插件目录。
 3. 确认脚本有执行权限：
 
 ```bash
-chmod +x *.sh
+chmod +x "swift bar"/*.sh
 ```
 
 ## 隐私配置
 
-脚本里不保存敏感信息。余额插件从环境变量读取凭据：
+脚本里不保存敏感信息。余额插件会先读取 `swift bar` 插件目录里的私有 `.env` 文件，再回退到系统环境变量。
 
 | 环境变量 | 使用脚本 |
 | --- | --- |
-| `NF_VIDEO_COOKIE` | `nf-video-balance.5m.sh` |
-| `DEEPSEEK_TOKEN` | `deepseek-balance.1h.sh` |
+| `NF_VIDEO_COOKIE` | `swift bar/nf-video-balance.5m.sh` |
+| `DEEPSEEK_TOKEN` | `swift bar/deepseek-balance.1h.sh` |
 
-SwiftBar 是 GUI 应用，通常不会自动继承 `.zshrc` 里的变量。建议用 `launchctl` 设置，让 GUI 应用也能读取：
-
-```bash
-launchctl setenv NF_VIDEO_COOKIE '你的 cookie'
-launchctl setenv DEEPSEEK_TOKEN '你的 token'
-```
-
-设置后退出并重新打开 SwiftBar。
-
-删除这些变量：
+创建私有配置文件：
 
 ```bash
-launchctl unsetenv NF_VIDEO_COOKIE
-launchctl unsetenv DEEPSEEK_TOKEN
+cp "swift bar/.env.example" "swift bar/.env"
 ```
+
+然后编辑 `swift bar/.env`：
+
+```bash
+NF_VIDEO_COOKIE='你的 cookie'
+DEEPSEEK_TOKEN='你的 token'
+```
+
+编辑后退出并重新打开 SwiftBar。`.env` 文件已被 Git 忽略。
 
 ## 说明
 
@@ -71,4 +70,3 @@ launchctl unsetenv DEEPSEEK_TOKEN
 ## 许可证
 
 MIT
-

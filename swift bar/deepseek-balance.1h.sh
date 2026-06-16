@@ -2,6 +2,14 @@
 
 set -o pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="${SWIFTBAR_ENV_FILE:-$SCRIPT_DIR/.env}"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  . "$ENV_FILE"
+  set +a
+fi
+
 URL="https://platform.deepseek.com/api/v0/users/get_user_summary"
 AUTH_TOKEN="${DEEPSEEK_TOKEN:-}"
 ERROR_LOG="/tmp/swiftbar-deepseek-balance.err"

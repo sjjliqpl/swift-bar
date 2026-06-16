@@ -2,6 +2,14 @@
 
 set -o pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="${SWIFTBAR_ENV_FILE:-$SCRIPT_DIR/.env}"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  . "$ENV_FILE"
+  set +a
+fi
+
 URL="https://cc.nf.video/8081/api/applet/codex/openai/users/dashboard"
 COOKIE="${NF_VIDEO_COOKIE:-}"
 ERROR_LOG="/tmp/swiftbar-balance.err"
