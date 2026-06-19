@@ -52,6 +52,68 @@ format_bytes() {
   '
 }
 
+print_top_memory_processes() {
+  LC_ALL=C ps -axo pid=,rss=,comm= 2>>"$ERROR_LOG" |
+    LC_ALL=C sort -k2 -nr |
+    awk '
+      function basename(path) {
+        sub(/^.*\//, "", path)
+        return path
+      }
+
+      function format_bytes(bytes, value, unit) {
+        if (bytes >= 1073741824) {
+          value = bytes / 1073741824
+          unit = "GB"
+        } else if (bytes >= 1048576) {
+          value = bytes / 1048576
+          unit = "MB"
+        } else if (bytes >= 1024) {
+          value = bytes / 1024
+          unit = "KB"
+        } else {
+          printf "%.0fB", bytes
+          return
+        }
+
+        if (value < 10) {
+          printf "%.2f%s", value, unit
+        } else if (value < 100) {
+          printf "%.1f%s", value, unit
+        } else {
+          printf "%.0f%s", value, unit
+        }
+      }
+
+      $1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ {
+        pid = $1
+        rss_bytes = $2 * 1024
+        $1 = ""
+        $2 = ""
+        sub(/^  */, "")
+        name = basename($0)
+        if (name == "") {
+          name = "pid " pid
+        }
+        gsub(/\|/, "/", name)
+
+        printf "%d. %s: ", ++count, name
+        format_bytes(rss_bytes)
+        printf " | font=Monaco size=12\n"
+
+        if (count >= 5) {
+          exit
+        }
+      }
+
+      END {
+        if (count == 0) {
+          print "无法读取进程内存统计"
+        }
+      }
+    '
+}
+
 TOTAL_BYTES=$(sysctl -n hw.memsize 2>>"$ERROR_LOG")
 VM_STAT=$(vm_stat 2>>"$ERROR_LOG")
 
@@ -146,6 +208,9 @@ echo "压缩器占用: $(format_bytes "$COMPRESSOR_BYTES")"
 echo "文件缓存/可清理: $(format_bytes "$CACHED_BYTES")"
 echo "物理已分配/含缓存: $(format_bytes "$ALLOCATED_BYTES")"
 echo "空闲页: $(format_bytes "$FREE_BYTES")"
+echo "---"
+echo "进程内存 Top 5"
+print_top_memory_processes
 echo "---"
 if [ -n "$SWAP_USED" ] && [ -n "$SWAP_TOTAL" ]; then
   echo "Swap: $(format_bytes "$(awk -v mb="$SWAP_USED" 'BEGIN { printf "%.0f", mb * 1048576 }')") / $(format_bytes "$(awk -v mb="$SWAP_TOTAL" 'BEGIN { printf "%.0f", mb * 1048576 }')")"
